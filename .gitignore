@@ -1,8 +1,8 @@
 # MY DEFNINITIONS
 *.suo
-#JSSimulation/bundles/*
-#JSSimulation/obj/*
-#JSSimulation/bin/*
+bundles/*
+obj/*
+bin/*
 *.aux
 *.pdf
 *.gz
