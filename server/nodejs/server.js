@@ -14,7 +14,15 @@ const app = express();
 // map HTML file extension to EJS renderer  (probably not needed here)
 // app.engine('html', require('ejs').renderFile);
 app.set('views', path.join(__dirname, '..', '..', 'client'));
-app.use('/', express.static(path.join(__dirname, '..','..', 'client')));
+
+app.use(function (req, res, next) {
+    console.log('Request: ' + req.url);
+    next();
+})
+
+app.use('/', express.static(path.join(__dirname, '..', '..', 'client')));
+
+
 
 app.get('/', function (req, res) {
     var options = {
@@ -50,6 +58,13 @@ app.get('/bgg', function (req, res) {
 
             res.json(values);
 
+        });
+});
+
+app.get('/bgg/boardgames/:ids', function (req, res) {
+    request.get('http://www.boardgamegeek.com/xmlapi/boardgame/' + req.params.ids,
+        function (err, resp, body) {
+            res.send(body);
         });
 });
 
