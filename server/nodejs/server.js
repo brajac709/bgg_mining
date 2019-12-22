@@ -64,6 +64,7 @@ app.get('/bgg', function (req, res) {
 app.get('/bgg/boardgames/:ids', function (req, res) {
     request.get('http://www.boardgamegeek.com/xmlapi/boardgame/' + req.params.ids,
         function (err, resp, body) {
+            res.set('Content-Type', 'text/xml');
             res.send(body);
         });
 });

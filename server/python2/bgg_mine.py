@@ -10,7 +10,7 @@ import sys, traceback, os
 
 import pdb
 
-class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+class MyRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     '''Handle HTTP requests by returning a fixed 'page'.'''
 
     staticPath = '../../client/'
@@ -35,7 +35,7 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             mimetype= 'text/xml'
             text = self.getBGGXMLAPI(parsed)
         else:
-            f = open(curdir + sep + RequestHandler.staticPath + path);
+            f = open(curdir + sep + MyRequestHandler.staticPath + path);
             text = f.read();
             f.close();
         
@@ -97,8 +97,8 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
 
 try: 
-    PORT = 8080
-    Handler = RequestHandler
+    PORT = 1337
+    Handler = MyRequestHandler
 
 
     httpd = SocketServer.TCPServer(("", PORT), Handler) 

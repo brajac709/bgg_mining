@@ -3,56 +3,74 @@ var data_arr = [];
 var page = 1;
 
 
-var iterateXML = function (xpath, xml) {
+var iterateXML = function (xpath, xml, func) {
     var xpathSnapshot = document.evaluate(xpath, 
                                           xml, 
                                           null, 
                                           XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, 
                                           null)
     
-    
+
+    if (typeof func === 'function') {
+        for (var i = 0; i < xpathSnapshot.snapshotLength; i++) {
+            func(xpathSnapshot.snapshotItem(i));
+        }
+    }
+
     return xpathSnapshot;
-    
-    /*
-    try {
-      var thisNode = xpathIterator.iterateNext();
-      
-      while (thisNode) {
-        console.log( thisNode.textContent );
-        thisNode = xpathIterator.iterateNext();
-      }	
-    }
-    catch (e) {
-      alert( 'Error: Document tree modified during iteration ' + e );
-    }
-    */
 }
 
 var processXML = function(xml) {
     console.log(xml)
     
     var xpathName = '//boardgame[position()<5]/name[@primary="true"]';
-    var xpathNumPlayers = '//boardgame[1]/poll[@name="suggested_numplayers"]'
+    var xpathPollNumPlayers = '//boardgame/poll[@name="suggested_numplayers"]';
     //var nsResolver = document.createNSResolver(document.ownerDocument == null ? document.documentElement : document.ownerDocument.documentElement);
-    
-    var xpathIterator = document.evaluate(xpath, 
-                                          xml, 
-                                          null, 
-                                          XPathResult.ORDERED_NODE_ITERATOR_TYPE, 
-                                          null)
-    
-    try {
-      var thisNode = xpathIterator.iterateNext();
-      
-      while (thisNode) {
-        console.log( thisNode.textContent );
-        thisNode = xpathIterator.iterateNext();
-      }	
-    }
-    catch (e) {
-      alert( 'Error: Document tree modified during iteration ' + e );
-    }
+
+    iterateXML(xpathPollNumPlayers, xml, findBestNumPlayers);
+  
 }
+
+var printXMLText = function (node) {
+    console.log(node.textContent);
+}
+
+var findBestNumPlayers = function (pollNode) {
+    // It's a DOM node so lets leverage JQuery here
+    // XPATH is using the whole document, even when I pass a sub-node
+    var $poll = $(pollNode); 
+    var bgname = $poll.siblings('name[primary="true"]').text();
+    var totalVotes = $poll.attr('totalvotes');
+    var $results = $poll.find('results');
+    var votes = $results.map(function (idx) {
+        var $elm = $(this);
+        var numplayers = parseInt($elm.attr('numplayers'));
+        var best = parseInt($elm.find('result[value="Best"]').attr('numvotes'));
+        var good = parseInt($elm.find('result[value="Recommended"]').attr('numvotes'));
+        var bad = parseInt($elm.find('result[value="Not Recommended"]').attr('numvotes'));
+
+        return {
+            "numplayers": numplayers,
+            "best": best,
+            "good": good,
+            "bad": bad
+        }
+    }).get();
+    var totalBestVotes = 0;
+
+    // TODO handle the empty case
+    var bestVoted = votes.reduce(function (acc, v, i, a) {
+        totalBestVotes += v.best;
+        if (acc.best < v.best) {
+            return v;
+        } else {
+            return acc;
+        }
+    });
+
+    console.log(bgname + ', Best Num Players: ' + bestVoted.numplayers + ' (' + bestVoted.best + '/' + totalBestVotes + ' votes) (' + totalVotes + ' total votes)');
+}
+
 
 var processBrowsePage = function(data) {
     console.log("start processBrowsePage");
