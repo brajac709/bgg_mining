@@ -6,12 +6,15 @@ import requests
 from lxml import html
 import urlparse
 import json
-import sys, traceback
+import sys, traceback, os
 
 import pdb
 
 class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     '''Handle HTTP requests by returning a fixed 'page'.'''
+
+    staticPath = '../../client/'
+
 
     # Handle a GET request.
     def do_GET(self):
@@ -32,7 +35,7 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             mimetype= 'text/xml'
             text = self.getBGGXMLAPI(parsed)
         else:
-            f = open(curdir + sep + path);
+            f = open(curdir + sep + RequestHandler.staticPath + path);
             text = f.read();
             f.close();
         
