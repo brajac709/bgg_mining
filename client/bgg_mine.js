@@ -13,7 +13,7 @@ var iterateXML = function (xpath, xml, func) {
 
     if (typeof func === 'function') {
         for (var i = 0; i < xpathSnapshot.snapshotLength; i++) {
-            func(xpathSnapshot.snapshotItem(i));
+            func(i, xpathSnapshot.snapshotItem(i));
         }
     }
 
@@ -31,15 +31,17 @@ var processXML = function(xml) {
   
 }
 
-var printXMLText = function (node) {
+var printXMLText = function (idx, node) {
     console.log(node.textContent);
 }
 
-var findBestNumPlayers = function (pollNode) {
+var findBestNumPlayers = function (idx, pollNode) {
     // It's a DOM node so lets leverage JQuery here
     // XPATH is using the whole document, even when I pass a sub-node
     var $poll = $(pollNode); 
     var bgname = $poll.siblings('name[primary="true"]').text();
+    var minplayers = $poll.siblings('minplayers').text();
+    var maxplayers = $poll.siblings('maxplayers').text();
     var totalVotes = $poll.attr('totalvotes');
     var $results = $poll.find('results');
     var votes = $results.map(function (idx) {
@@ -69,6 +71,13 @@ var findBestNumPlayers = function (pollNode) {
     });
 
     console.log(bgname + ', Best Num Players: ' + bestVoted.numplayers + ' (' + bestVoted.best + '/' + totalBestVotes + ' votes) (' + totalVotes + ' total votes)');
+
+    $('<tr></tr>')
+        .append('<td>' + (idx+1) + '</td>')  // rank
+        .append('<td>' + bgname + '</td>')  // name
+        .append('<td>' + minplayers + ' - ' + maxplayers + '</td>')  // numplayers
+        .append('<td>' + bestVoted.numplayers + ' (' + bestVoted.best + '/' + totalBestVotes + ' votes) (' + totalVotes + ' total votes) </td>')  // best numplayers
+        .appendTo('#main_container #games tbody');
 }
 
 
