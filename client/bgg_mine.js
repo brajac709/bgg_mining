@@ -72,16 +72,19 @@ var findBestNumPlayers = function (idx, pollNode) {
 
     console.log(bgname + ', Best Num Players: ' + bestVoted.numplayers + ' (' + bestVoted.best + '/' + totalBestVotes + ' votes) (' + totalVotes + ' total votes)');
 
-    $('<tr></tr>')
-        .append('<td>' + (idx+1) + '</td>')  // rank
-        .append('<td>' + bgname + '</td>')  // name
-        .append('<td>' + minplayers + ' - ' + maxplayers + '</td>')  // numplayers
-        .append('<td>' + bestVoted.numplayers + ' (' + bestVoted.best + '/' + totalBestVotes + ' votes) (' + totalVotes + ' total votes) </td>')  // best numplayers
-        .appendTo('#main_container #games tbody');
+    if (bestVoted.numplayers == 2) {
+
+        $('<tr></tr>')
+            .append('<td>' + (idx + 1) + '</td>')  // rank
+            .append('<td>' + bgname + '</td>')  // name
+            .append('<td>' + minplayers + ' - ' + maxplayers + '</td>')  // numplayers
+            .append('<td>' + bestVoted.numplayers + ' (' + bestVoted.best + '/' + totalBestVotes + ' votes) (' + totalVotes + ' total votes) </td>')  // best numplayers
+            .appendTo('#main_container #games tbody');
+    }
 }
 
 
-var processBrowsePage = function(data) {
+var processBrowsePage = function(page, data) {
     console.log("start processBrowsePage");
     
     // extract IDs and put together the request-
@@ -114,11 +117,11 @@ var getBGGData = function() {
     // .done(processBrowsePage)
     //;
     
-    $.get('bgg')
+    $.get('bgg?page=' + page)
      .done(function (data) { 
         data_arr = data_arr.concat(data);
         
-        processBrowsePage(data);
+        processBrowsePage(page, data);
         console.log(data_arr);
     });
 }
