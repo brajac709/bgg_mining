@@ -20,14 +20,36 @@ var iterateXML = function (xpath, xml, func) {
     return xpathSnapshot;
 }
 
-var processXML = function(xml) {
+var processXML = function(xml, cb) {
     console.log(xml)
     
     var xpathName = '//boardgame[position()<5]/name[@primary="true"]';
     var xpathPollNumPlayers = '//boardgame/poll[@name="suggested_numplayers"]';
     //var nsResolver = document.createNSResolver(document.ownerDocument == null ? document.documentElement : document.ownerDocument.documentElement);
 
-    iterateXML(xpathPollNumPlayers, xml, findBestNumPlayers);
+    var result = [];
+
+    var findBestAndMakeTable = function (idx, pollNode) {
+        var res = findBestNumPlayers(idx, pollNode);
+        result.push(res);
+
+        if(res.bestVoted.numplayers == 2) {
+
+            $('<tr></tr>')
+                .append('<td>' + res.rank + '</td>')  // rank
+                .append('<td>' + res.bgname + '</td>')  // name
+                .append('<td>' + res.minplayers + ' - ' + res.maxplayers + '</td>')  // numplayers
+                .append('<td>' + res.bestVoted.numplayers + ' (' + res.bestVoted.best + '/' + res.totalBestVotes + ' votes) (' + res.totalVotes + ' total votes) </td>')  // best numplayers
+                .appendTo('#main_container #games tbody');
+        }
+    }
+
+
+    iterateXML(xpathPollNumPlayers, xml, findBestAndMakeTable);
+
+    cb(result);
+
+    return result;
   
 }
 
@@ -72,41 +94,44 @@ var findBestNumPlayers = function (idx, pollNode) {
 
     console.log(bgname + ', Best Num Players: ' + bestVoted.numplayers + ' (' + bestVoted.best + '/' + totalBestVotes + ' votes) (' + totalVotes + ' total votes)');
 
-    if (bestVoted.numplayers == 2) {
-
-        $('<tr></tr>')
-            .append('<td>' + (idx + 1) + '</td>')  // rank
-            .append('<td>' + bgname + '</td>')  // name
-            .append('<td>' + minplayers + ' - ' + maxplayers + '</td>')  // numplayers
-            .append('<td>' + bestVoted.numplayers + ' (' + bestVoted.best + '/' + totalBestVotes + ' votes) (' + totalVotes + ' total votes) </td>')  // best numplayers
-            .appendTo('#main_container #games tbody');
+    return {
+        "rank": idx + 1,
+        "bgname": bgname,
+        "minplayers": minplayers,
+        "maxplayers": maxplayers,
+        "bestVoted": bestVoted,
+        "totalBestVotes": totalBestVotes,
+        "totalVotes": totalVotes
     }
+
+
+    
 }
 
 
-var processBrowsePage = function(page, data) {
+var processBrowsePage = function(page, data, cb) {
     console.log("start processBrowsePage");
     
     // extract IDs and put together the request-
     // TODO probably need to use reduce to lock out some of the objects
-    ids = data.map(function (v,i,a) {
-        parts = v.split('/')
+    var ids = data.map(function (v,i,a) {
+        var parts = v.split('/')
         if (parts[1] == 'boardgame') {
             return parts[2]
         } else {
             return 1;  // TESTING???
         }
     });
-    ids_str = ids.join(',');
+    var ids_str = ids.join(',');
     
     
     // extract the XML poll data for num players
     $.get('/bgg/boardgames/' + ids_str)
-     .done(processXML);
+     .done((xml) => processXML(xml, cb));
     
 }
 
-var getBGGData = function() {
+var getBGGData = function(cb) {
     console.log("test start");
     
     //var pageNum = 1;
@@ -121,9 +146,86 @@ var getBGGData = function() {
      .done(function (data) { 
         data_arr = data_arr.concat(data);
         
-        processBrowsePage(page, data);
+        processBrowsePage(page, data, cb);
         console.log(data_arr);
     });
 }
 
-$(document).ready(getBGGData);
+/********* REACT STUFF ******/
+
+class GameTable extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            data: []
+        }
+        this.updateData = this.updateData.bind(this);
+    }
+
+    // the quick and dirty anti-pattern
+    // TODO change this to only set state in the component
+    updateData(newdata) {
+        var bothdata = this.state.data.concat(newdata);
+        this.setState({ data: bothdata });
+    }
+
+
+    componentDidMount() {
+        // TODO this is not really async right now
+        this._asyncRequest = getBGGData(this.updateData); // TODO make call & set state
+    }
+
+    componentWillUnmount() {
+        // TODO cleanup/cancel any async calls
+    }
+
+
+    render() {
+        var twoPlayerGames = this.state.data.filter((v) => v.bestVoted.numplayers == 2);
+        var rows = twoPlayerGames.map((g) => {
+            return (<GameTableRow data={g} />);
+        })
+        
+
+        return (
+            <table>
+                <GameTableHeader />
+                <tbody>
+                    {rows}
+                </tbody>
+            </table>
+        );
+    }
+}
+
+function GameTableHeader() {
+    return (
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Game</th>
+                <th>Num Players</th>
+                <th>Best Num Players</th>
+            </tr>
+        </thead>
+    );
+}
+
+function GameTableRow(props) {
+    return (
+        <tr>
+            <td>{props.data.rank}</td>
+            <td>{props.data.bgname}</td>
+            <td>{props.data.minplayers} - {props.data.maxplayers}</td>
+            <td>{props.data.bestVoted.numplayers} ({props.data.bestVoted.best}/{props.data.totalBestVotes} votes) ({props.data.totalVotes} total votes)</td>
+        </tr>
+    );
+}
+
+const domContainer = document.querySelector('#main_container_react');
+ReactDOM.render(React.createElement(GameTable), domContainer)
+
+
+
+
+// $(document).ready(getBGGData);

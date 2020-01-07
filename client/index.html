@@ -3,23 +3,34 @@
   <head>
     <title>BGG Searching</title>
     <script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
-    <script type="text/javascript" src="bgg_mine.js" defer="true"></script>
   </head>
   <body>
-    <div id="head">Hello</div>
-    <div id="main_container">
-        <table id="games">
-            <thead>
-                <tr>
-                    <th>Rank</th>
-                    <th>Game</th>
-                    <th>Num Players</th>
-                    <th>Best Num Players</th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
-    </div>
+      <div id="head">Hello</div>
+      <div id="main_container">
+          <table id="games">
+              <thead>
+                  <tr>
+                      <th>Rank</th>
+                      <th>Game</th>
+                      <th>Num Players</th>
+                      <th>Best Num Players</th>
+                  </tr>
+              </thead>
+              <tbody>
+              </tbody>
+          </table>
+      </div>
+      <div id="main_container_react"></div>
+
+      <!-- Load React. -->
+      <!-- Note: when deploying, replace "development.js" with "production.min.js". -->
+      <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
+      <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
+
+      <!-- quick and dirty JSX support -->
+      <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+      <!-- My React Components -->
+      <script type="text/babel" src="bgg_mine.js"></script>
   </body>
 </html>
