@@ -1,6 +1,6 @@
 
 var data_arr = [];
-var page = 1;
+
 
 
 var iterateXML = function (xpath, xml, func) {
@@ -20,7 +20,7 @@ var iterateXML = function (xpath, xml, func) {
     return xpathSnapshot;
 }
 
-var processXML = function(xmltext) {
+var processXML = function(xmltext, curlen) {
     var xml = (new window.DOMParser()).parseFromString(xmltext, 'text/xml');
     console.log(xml)
     
@@ -32,7 +32,7 @@ var processXML = function(xmltext) {
     var result = [];
 
     var findBestAndMakeTable = function (idx, pollNode) {
-        var res = findBestNumPlayers(idx, pollNode);
+        var res = findBestNumPlayers(idx, pollNode, curlen);
         result.push(res);
 
         /*
@@ -59,7 +59,7 @@ var printXMLText = function (idx, node) {
     console.log(node.textContent);
 }
 
-var findBestNumPlayers = function (idx, pollNode) {
+var findBestNumPlayers = function (idx, pollNode, curlen) {
     // It's a DOM node so lets leverage JQuery here
     // XPATH is using the whole document, even when I pass a sub-node
 
@@ -102,7 +102,7 @@ var findBestNumPlayers = function (idx, pollNode) {
 
     return {
         "id": bgID,
-        "rank": idx + 1,
+        "rank": idx + 1 + curlen,
         "bgname": bgname,
         "minplayers": minplayers,
         "maxplayers": maxplayers,
@@ -116,7 +116,7 @@ var findBestNumPlayers = function (idx, pollNode) {
 }
 
 
-var processBrowsePage = function(page, data) {
+var processBrowsePage = function(page, data, curlen) {
     console.log("start processBrowsePage");
     
     // extract IDs and put together the request-
@@ -135,11 +135,11 @@ var processBrowsePage = function(page, data) {
     // extract the XML poll data for num players
     return fetch('/bgg/boardgames/' + ids_str)
         .then((res) => res.text())
-        .then((xml) => processXML(xml));
+        .then((xml) => processXML(xml, curlen));
 
 }
 
-var getBGGData = function() {
+var getBGGData = function(page) {
     console.log("test start");
     
     //var pageNum = 1;
@@ -150,16 +150,18 @@ var getBGGData = function() {
     // .done(processBrowsePage)
     //;
 
-    var promise = fetch('bgg?page=' + page)
+    var curlen = data_arr.length;
+    var p = fetch('bgg?page=' + page)
         .then((res) => res.json())
-        .then(function (data) {
+        .then((data) => {
             data_arr = data_arr.concat(data);
-
             console.log(data_arr)
-            return processBrowsePage(page, data)
+            return data;
         });
 
-    return promise;
+    return p.then(function (data) {
+        return processBrowsePage(page, data, curlen)
+        });
 }
 
 /********* REACT STUFF ******/
@@ -168,23 +170,46 @@ class GameTable extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            data: []
+            data: [],
+            cur_page: 0,
+            isLoading: false
         }
         this.updateData = this.updateData.bind(this);
     }
 
+    max_pages = 10;
+
     // the quick and dirty anti-pattern
     // TODO change this to only set state in the component
-    updateData(newdata) {
+    updateData(newdata, cur_page) {
         this._asyncRequest = null;
         var bothdata = this.state.data.concat(newdata);
-        this.setState({ data: bothdata });
+        this.setState({
+            data: bothdata,
+            cur_page: cur_page
+        });
     }
 
+    getNextPage() {
+        var cur_page = this.state.cur_page + 1;
+        return getBGGData(cur_page).
+            then((data) => this.updateData(data, cur_page))
+            .then(() => {
+                if (cur_page < this.max_pages) {
+                    return this.getNextPage();
+                } else {
+                    return this.setState({
+                        isLoading: false
+                    });
+                }
+            })
+    }
 
     componentDidMount() {
-        this._asyncRequest = getBGGData().
-            then((data) => this.updateData(data)); 
+        this.setState({
+            isLoading: true
+        });
+        this._asyncRequest = this.getNextPage();
     }
 
     componentWillUnmount() {
@@ -203,12 +228,15 @@ class GameTable extends React.Component {
         
 
         return (
-            <table>
-                <GameTableHeader />
-                <tbody>
-                    {rows}
-                </tbody>
-            </table>
+            <React.Fragment>
+                <div>{'Loading: ' + this.state.isLoading}</div>
+                <table>
+                    <GameTableHeader />
+                    <tbody>
+                        {rows}
+                    </tbody>
+                </table>
+            </React.Fragment>
         );
     }
 }
@@ -231,7 +259,7 @@ function GameTableRow(props) {
         <tr>
             <td>{props.data.rank}</td>
             <td>{props.data.bgname}</td>
-            <td>{props.data.minplayers} - {props.data.maxplayers}</td>
+            <td>{props.data.minplayers}-{props.data.maxplayers}</td>
             <td>{props.data.bestVoted.numplayers} ({props.data.bestVoted.best}/{props.data.totalBestVotes} votes) ({props.data.totalVotes} total votes)</td>
         </tr>
     );

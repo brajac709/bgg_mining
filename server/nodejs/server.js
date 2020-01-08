@@ -32,7 +32,7 @@ app.get('/', function (req, res) {
 });
 
 app.get('/bgg', function (req, res) {
-    var page, xpath;
+    var page, xpath_link, xpath_rank;
 
     if (typeof req.query.page === 'undefined') {
         page = '1';
@@ -41,7 +41,9 @@ app.get('/bgg', function (req, res) {
     }
     if (typeof req.query.xpath === 'undefined') {
         // xpath = '//table[@id="collectionitems"]//tr[@id="row_"]//td[@class="collection_thumbnail"]//a/@href';
-        xpath = '//x:table[@id="collectionitems"]//x:tr[@id="row_"]//x:td[@class="collection_thumbnail"]//x:a/@href';
+        xpath_link = '//x:table[@id="collectionitems"]//x:tr[@id="row_"]//x:td[@class="collection_thumbnail"]//x:a/@href';
+        // TODO maybe send down the rank as well???
+        xpath_rank = '//x:table[@id="collectionitems"]//x:tr[@id="row_"]//x:td[@class="collection_rank"]//x:a/@name';
     } else {
         xpath = req.query.page;
     }
@@ -53,8 +55,8 @@ app.get('/bgg', function (req, res) {
             const xhtml = xmlser.serializeToString(document);
             const doc = new dom().parseFromString(xhtml);
             const select = xpathm.useNamespaces({ "x": "http://www.w3.org/1999/xhtml" });
-            const nodes = select(xpath, doc);
-            const values = nodes.map(function (v) { return v.value });
+            const nodes_link = select(xpath_link, doc);
+            const values = nodes_link.map(function (v) { return v.value });
 
             res.json(values);
 
