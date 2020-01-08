@@ -20,11 +20,13 @@ var iterateXML = function (xpath, xml, func) {
     return xpathSnapshot;
 }
 
-var processXML = function(xml, cb) {
+var processXML = function(xmltext) {
+    var xml = (new window.DOMParser()).parseFromString(xmltext, 'text/xml');
     console.log(xml)
     
     var xpathName = '//boardgame[position()<5]/name[@primary="true"]';
     var xpathPollNumPlayers = '//boardgame/poll[@name="suggested_numplayers"]';
+    
     //var nsResolver = document.createNSResolver(document.ownerDocument == null ? document.documentElement : document.ownerDocument.documentElement);
 
     var result = [];
@@ -33,6 +35,7 @@ var processXML = function(xml, cb) {
         var res = findBestNumPlayers(idx, pollNode);
         result.push(res);
 
+        /*
         if(res.bestVoted.numplayers == 2) {
 
             $('<tr></tr>')
@@ -42,12 +45,11 @@ var processXML = function(xml, cb) {
                 .append('<td>' + res.bestVoted.numplayers + ' (' + res.bestVoted.best + '/' + res.totalBestVotes + ' votes) (' + res.totalVotes + ' total votes) </td>')  // best numplayers
                 .appendTo('#main_container #games tbody');
         }
+        */
     }
 
 
     iterateXML(xpathPollNumPlayers, xml, findBestAndMakeTable);
-
-    cb(result);
 
     return result;
   
@@ -60,11 +62,15 @@ var printXMLText = function (idx, node) {
 var findBestNumPlayers = function (idx, pollNode) {
     // It's a DOM node so lets leverage JQuery here
     // XPATH is using the whole document, even when I pass a sub-node
+
+    // TODO lets try and take out JQuery 
+    // (these are pretty simple DOM queries so it shouldn't be too bad)
     var $poll = $(pollNode); 
     var bgname = $poll.siblings('name[primary="true"]').text();
     var minplayers = $poll.siblings('minplayers').text();
     var maxplayers = $poll.siblings('maxplayers').text();
     var totalVotes = $poll.attr('totalvotes');
+    var bgID = $poll.parent('boardgame').attr('objectid');
     var $results = $poll.find('results');
     var votes = $results.map(function (idx) {
         var $elm = $(this);
@@ -95,6 +101,7 @@ var findBestNumPlayers = function (idx, pollNode) {
     console.log(bgname + ', Best Num Players: ' + bestVoted.numplayers + ' (' + bestVoted.best + '/' + totalBestVotes + ' votes) (' + totalVotes + ' total votes)');
 
     return {
+        "id": bgID,
         "rank": idx + 1,
         "bgname": bgname,
         "minplayers": minplayers,
@@ -109,7 +116,7 @@ var findBestNumPlayers = function (idx, pollNode) {
 }
 
 
-var processBrowsePage = function(page, data, cb) {
+var processBrowsePage = function(page, data) {
     console.log("start processBrowsePage");
     
     // extract IDs and put together the request-
@@ -126,12 +133,13 @@ var processBrowsePage = function(page, data, cb) {
     
     
     // extract the XML poll data for num players
-    $.get('/bgg/boardgames/' + ids_str)
-     .done((xml) => processXML(xml, cb));
-    
+    return fetch('/bgg/boardgames/' + ids_str)
+        .then((res) => res.text())
+        .then((xml) => processXML(xml));
+
 }
 
-var getBGGData = function(cb) {
+var getBGGData = function() {
     console.log("test start");
     
     //var pageNum = 1;
@@ -141,14 +149,17 @@ var getBGGData = function(cb) {
     //$.get("http://www.boardgamegeek.com/browse/boardgame")
     // .done(processBrowsePage)
     //;
-    
-    $.get('bgg?page=' + page)
-     .done(function (data) { 
-        data_arr = data_arr.concat(data);
-        
-        processBrowsePage(page, data, cb);
-        console.log(data_arr);
-    });
+
+    var promise = fetch('bgg?page=' + page)
+        .then((res) => res.json())
+        .then(function (data) {
+            data_arr = data_arr.concat(data);
+
+            console.log(data_arr)
+            return processBrowsePage(page, data)
+        });
+
+    return promise;
 }
 
 /********* REACT STUFF ******/
@@ -165,25 +176,29 @@ class GameTable extends React.Component {
     // the quick and dirty anti-pattern
     // TODO change this to only set state in the component
     updateData(newdata) {
+        this._asyncRequest = null;
         var bothdata = this.state.data.concat(newdata);
         this.setState({ data: bothdata });
     }
 
 
     componentDidMount() {
-        // TODO this is not really async right now
-        this._asyncRequest = getBGGData(this.updateData); // TODO make call & set state
+        this._asyncRequest = getBGGData().
+            then((data) => this.updateData(data)); 
     }
 
     componentWillUnmount() {
         // TODO cleanup/cancel any async calls
+        if (this._asyncRequest) {
+            this._asyncRequest.cancel()
+        }
     }
 
 
     render() {
         var twoPlayerGames = this.state.data.filter((v) => v.bestVoted.numplayers == 2);
         var rows = twoPlayerGames.map((g) => {
-            return (<GameTableRow data={g} />);
+            return (<GameTableRow key={g.id} data={g}  />);
         })
         
 
