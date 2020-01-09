@@ -21,6 +21,7 @@ app.use(function (req, res, next) {
 })
 
 app.use('/', express.static(path.join(__dirname, '..', '..', 'client')));
+app.use('/', express.static(path.join(__dirname, '..', '..', 'prod')));
 
 
 

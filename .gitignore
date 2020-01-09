@@ -3,6 +3,7 @@
 bundles/*
 obj/*
 bin/*
+prod/*
 *.aux
 *.pdf
 *.gz

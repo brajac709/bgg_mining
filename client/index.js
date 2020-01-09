@@ -11,6 +11,7 @@ class GameTable extends React.Component {
             numplayers: 2,
         }
 
+        this.max_pages = 10;
 
         this.updateData = this.updateData.bind(this);
         this.updateFormData = this.updateFormData.bind(this);
@@ -28,7 +29,7 @@ class GameTable extends React.Component {
     }
 
 
-    max_pages = 10;
+    
 
     // the quick and dirty anti-pattern
     // TODO change this to only set state in the component
