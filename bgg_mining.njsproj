@@ -32,6 +32,9 @@
     <Compile Include="server\nodejs\server.js" />
     <Content Include="client\favicon.ico" />
     <Content Include="client\index.html" />
+    <Content Include="client\index.js">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="package.json" />
     <Content Include="README.md" />
   </ItemGroup>
