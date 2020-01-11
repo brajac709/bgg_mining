@@ -1,7 +1,7 @@
 
-var data_arr = [];
+export var data_arr = [];
 
-var iterateXML = function (xpath, xml, func) {
+export var iterateXML = function (xpath, xml, func) {
     var xpathSnapshot = document.evaluate(xpath, 
                                           xml, 
                                           null, 
@@ -18,7 +18,7 @@ var iterateXML = function (xpath, xml, func) {
     return xpathSnapshot;
 }
 
-var processXML = function(xmltext, curlen) {
+export var processXML = function(xmltext, curlen) {
     var xml = (new window.DOMParser()).parseFromString(xmltext, 'text/xml');
     console.log(xml)
     
@@ -53,11 +53,11 @@ var processXML = function(xmltext, curlen) {
   
 }
 
-var printXMLText = function (idx, node) {
+export var printXMLText = function (idx, node) {
     console.log(node.textContent);
 }
 
-var findBestNumPlayers = function (idx, pollNode, curlen) {
+export var findBestNumPlayers = function (idx, pollNode, curlen) {
     // It's a DOM node so lets leverage JQuery here
     // XPATH is using the whole document, even when I pass a sub-node
 
@@ -114,7 +114,7 @@ var findBestNumPlayers = function (idx, pollNode, curlen) {
 }
 
 
-var processBrowsePage = function(page, data, curlen) {
+export var processBrowsePage = function(page, data, curlen) {
     console.log("start processBrowsePage");
     
     // extract IDs and put together the request-
@@ -137,7 +137,7 @@ var processBrowsePage = function(page, data, curlen) {
 
 }
 
-var getBGGData = function(page) {
+export var getBGGData = function(page) {
     console.log("test start");
     
     //var pageNum = 1;
@@ -161,8 +161,3 @@ var getBGGData = function(page) {
         return processBrowsePage(page, data, curlen)
         });
 }
-
-
-
-
-// $(document).ready(getBGGData);

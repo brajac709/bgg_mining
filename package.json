@@ -2,7 +2,7 @@
   "name": "bgg_mining",
   "version": "0.0.0",
   "description": "bgg_mining",
-  "main": "server.js",
+  "private": true,
   "author": {
     "name": ""
   },
@@ -10,6 +10,7 @@
     "@babel/cli": "^7.7.7",
     "@babel/core": "^7.7.7",
     "@babel/preset-react": "^7.7.4",
+    "babel-loader": "^8.0.6",
     "babel-preset-react-app": "^9.1.0",
     "express": "^4.17.1",
     "formik": "^2.1.1",
@@ -17,9 +18,14 @@
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
     "request": "^2.88.0",
+    "webpack": "^4.41.5",
+    "webpack-cli": "^3.3.10",
     "xml2js": "^0.4.23",
     "xmldom": "^0.2.1",
     "xmlserializer": "^0.6.1",
     "xpath": "0.0.27"
+  },
+  "scripts": {
+    "build": "babel client --out-file prod/index-compiled.js --presets=@babel/preset-react"
   }
 }

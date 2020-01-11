@@ -1,4 +1,6 @@
-
+import React from "react";
+import ReactDOM from 'react-dom';
+import * as BggMine from './bgg_mine.js';
 /********* REACT STUFF ******/
 
 class GameTable extends React.Component {
@@ -44,7 +46,7 @@ class GameTable extends React.Component {
 
     getNextPage() {
         var cur_page = this.state.cur_page + 1;
-        return getBGGData(cur_page).
+        return BggMine.getBGGData(cur_page).
             then((data) => this.updateData(data, cur_page))
             .then(() => {
                 if (cur_page < this.max_pages) {
