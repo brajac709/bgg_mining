@@ -1,7 +1,13 @@
 import React from "react";
 import ReactDOM from 'react-dom';
-import * as BggMine from './bgg_mine.js';
-/********* REACT STUFF ******/
+import * as BggMine from './bgg_mine.js';  // TODO improve this??
+import { Formik, useField } from 'formik'
+
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+import Form from 'react-bootstrap/Form';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 class GameTable extends React.Component {
     constructor(props) {
@@ -10,7 +16,10 @@ class GameTable extends React.Component {
             data: [],
             cur_page: 0,
             isLoading: false,
-            numplayers: 2,
+            formdata: {
+                numplayers: 2,
+                numplayersCheck: true
+            }
         }
 
         this.max_pages = 10;
@@ -20,14 +29,18 @@ class GameTable extends React.Component {
     }
 
     updateFormData(formdata) {
+        // Formik does the conversion for you.
+        /*
         for (var prop in formdata) {
             var val = parseInt(formdata[prop]);
             if (!isNaN(val)) {
                 formdata[prop] = val;
             }
         }
+        */
+        
 
-        this.setState(formdata );
+        this.setState({ formdata });
     }
 
 
@@ -75,23 +88,29 @@ class GameTable extends React.Component {
 
 
     render() {
-        var twoPlayerGames = this.state.data.filter((v) => v.bestVoted.numplayers == this.state.numplayers);
-        var rows = twoPlayerGames.map((g) => {
+        const formdata = this.state.formdata;
+        let filteredGames = this.state.data;
+        if (formdata.numplayersCheck) {
+            filteredGames = this.state.data.filter((v) => v.bestVoted.numplayers == formdata.numplayers);
+        }
+        let rows = filteredGames.map((g) => {
             return (<GameTableRow key={g.id} data={g} />);
         })
 
 
         return (
-            <React.Fragment>
+            <>
                 <div>{'Loading: ' + this.state.isLoading}</div>
-                <SearchForm numplayers={this.state.numplayers} onDataChange={this.updateFormData} /> 
+                <Container>
+                    <SearchForm {...this.state.formdata} onDataChange={this.updateFormData} /> 
+                </Container>
                 <table>
                     <GameTableHeader />
                     <tbody>
                         {rows}
                     </tbody>
                 </table>
-            </React.Fragment>
+            </>
         );
     }
 }
@@ -120,34 +139,55 @@ function GameTableRow(props) {
     );
 }
 
-class SearchForm extends React.Component {
-    constructor(props) {
-        super(props);
-        this.handleChange = this.handleChange.bind(this);
-    }
 
 
-    handleChange(event) {
-        const target = event.target;
-        const value = target.type === 'checkbox' ?
-            target.checked : target.value;
-        const name = target.name;
 
-        var formdata = {
-            [name] : value
-        }
-        this.props.onDataChange(formdata)
-    }
+const SearchForm = (props) => {
+    return (
+        <div>
+            <Formik
+                initialValues={{
+                    numplayers: props.numplayers,
+                    numplayersCheck: props.numplayersCheck
+                }}
+                onSubmit={props.onDataChange }
+            >
+                <Form>
+                    <SearchInputToggle label='Best Number of Players' type='number' name='numplayers' />
+                    <button type="submit">Submit</button>
+                </Form>
+            </Formik>
 
-    render() {
-        return (
-            <div>
-                <label>Best Number of Players</label>
-                <input type="number" name="numplayers" value={this.props.numplayers} onChange={this.handleChange}/>
-            </div>
+        </div>
+    );
+}
 
-        );
-    }
+const SearchInput = ({ label, ...props }) => {
+    const [field, meta] = useField(props);
+
+    return (
+        <>
+            <label htmlFor={props.id || props.name}>{label}</label>
+            <input {...field} {...props} />
+        </>
+     );
+}
+
+const SearchInputToggle = ({ label, ...props }) => {
+    var myProps = { ...props };  // Copy props
+    myProps.name = props.name + 'Check';
+    myProps.type = 'checkbox'
+    const [field, meta] = useField(myProps);
+    const onChangeOrig = field.onChange;
+
+    return (
+        <>
+            <Form.Group controlId="checkboxTest">
+                <Form.Check label={label} {...field} {...myProps} />
+            </Form.Group>
+            <SearchInput label={label} {...props} disabled={!meta.value}/>
+        </>
+    );
 }
 
 const domContainer = document.querySelector('#main_container_react');
