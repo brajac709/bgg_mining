@@ -26,6 +26,8 @@
     "xpath": "0.0.27"
   },
   "scripts": {
-    "build": "babel client --out-file prod/index-compiled.js --presets=@babel/preset-react"
+    "build": "webpack",
+    "watch": "webpack --watch"
+     
   }
 }

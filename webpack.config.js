@@ -9,6 +9,7 @@ module.exports = {
         filename: 'index-compiled.js',
         path: path.resolve(__dirname, 'prod'),
     },
+    devtool: 'inline-source-map', // is this bad??? IDK???
     module: {
         rules: [
             {
