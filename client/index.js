@@ -1,13 +1,15 @@
 import React from "react";
 import ReactDOM from 'react-dom';
 import * as BggMine from './bgg_mine.js';  // TODO improve this??
-import { Formik, useField } from 'formik'
+import { Formik, Form, useField } from 'formik'
 
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import Form from 'react-bootstrap/Form';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import BSForm from 'react-bootstrap/Form';
+import InputGroup from 'react-bootstrap/InputGroup';
+import Button from 'react-bootstrap/Button';
+// import 'bootstrap/dist/css/bootstrap.min.css';  // THis isn't working
 
 class GameTable extends React.Component {
     constructor(props) {
@@ -154,7 +156,9 @@ const SearchForm = (props) => {
             >
                 <Form>
                     <SearchInputToggle label='Best Number of Players' type='number' name='numplayers' />
-                    <button type="submit">Submit</button>
+                    <BSForm.Row>
+                        <Button variant="primary" type="submit">Submit</Button>
+                    </BSForm.Row>
                 </Form>
             </Formik>
 
@@ -173,19 +177,25 @@ const SearchInput = ({ label, ...props }) => {
      );
 }
 
-const SearchInputToggle = ({ label, ...props }) => {
-    var myProps = { ...props };  // Copy props
-    myProps.name = props.name + 'Check';
-    myProps.type = 'checkbox'
-    const [field, meta] = useField(myProps);
-    const onChangeOrig = field.onChange;
+const SearchInputToggle = ({ label, ...inpProps }) => {
+    var checkProps = { ...inpProps };  // Copy props
+    checkProps.name = inpProps.name + 'Check';
+    checkProps.type = 'checkbox'
+    const [checkField, checkMeta] = useField(checkProps);
+    const [inpField, inpMeta] = useField(inpProps);
 
     return (
         <>
-            <Form.Group controlId="checkboxTest">
-                <Form.Check label={label} {...field} {...myProps} />
-            </Form.Group>
-            <SearchInput label={label} {...props} disabled={!meta.value}/>
+            <InputGroup className="mb-3">
+                <BSForm.Group as={InputGroup.Prepend} controlId='test'>
+                    <InputGroup.Text>          
+                        <BSForm.Check label={label} {...checkField} {...checkProps} />
+                    </InputGroup.Text>
+                </BSForm.Group>
+                <BSForm.Control {...inpField} {...inpProps} disabled={!checkMeta.value} />
+            </InputGroup>
+            { //<SearchInput label={label} {...props} disabled={!meta.value}/> 
+            }
         </>
     );
 }
