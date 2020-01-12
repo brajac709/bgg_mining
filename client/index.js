@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from 'react-dom';
 import * as BggMine from './bgg_mine.js';  // TODO improve this??
-import { Formik, Form, useField } from 'formik'
+import { Formik, Form as FForm, useField } from 'formik'
 
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
@@ -9,6 +9,9 @@ import Col from 'react-bootstrap/Col';
 import BSForm from 'react-bootstrap/Form';
 import InputGroup from 'react-bootstrap/InputGroup';
 import Button from 'react-bootstrap/Button';
+import Table from 'react-bootstrap/Table';
+import Card from 'react-bootstrap/Card';
+import Spinner from 'react-bootstrap/Spinner';
 // import 'bootstrap/dist/css/bootstrap.min.css';  // THis isn't working
 
 class GameTable extends React.Component {
@@ -101,18 +104,31 @@ class GameTable extends React.Component {
 
 
         return (
-            <>
-                <div>{'Loading: ' + this.state.isLoading}</div>
-                <Container>
-                    <SearchForm {...this.state.formdata} onDataChange={this.updateFormData} /> 
-                </Container>
-                <table>
-                    <GameTableHeader />
-                    <tbody>
-                        {rows}
-                    </tbody>
-                </table>
-            </>
+            <Container fluid>
+                <br />
+                <Card>
+                    <Row>
+                        <Col>
+                            <div>{'Loading: ' + this.state.isLoading}</div>
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col>
+                            <SearchForm {...this.state.formdata} onDataChange={this.updateFormData} />
+                            {(this.state.isLoading ? <Spinner animation="border" /> : null) }
+                        </Col>
+                    </Row>
+                </Card>
+                <br />
+                <Card>
+                    <Table>
+                        <GameTableHeader />
+                        <tbody>
+                            {rows}
+                        </tbody>
+                    </Table>
+                </Card>
+            </Container>
         );
     }
 }
@@ -154,12 +170,14 @@ const SearchForm = (props) => {
                 }}
                 onSubmit={props.onDataChange }
             >
-                <Form>
-                    <SearchInputToggle label='Best Number of Players' type='number' name='numplayers' />
+                <FForm>
+                    <SearchInputToggle name='numplayers' label='Best Number of Players' type='number'  />
                     <BSForm.Row>
-                        <Button variant="primary" type="submit">Submit</Button>
+                        <Col>
+                            <Button variant="primary" type="submit">Submit</Button>
+                        </Col>
                     </BSForm.Row>
-                </Form>
+                </FForm>
             </Formik>
 
         </div>
