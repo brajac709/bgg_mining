@@ -107,26 +107,32 @@ class GameTable extends React.Component {
             <Container fluid>
                 <br />
                 <Card>
-                    <Row>
-                        <Col>
-                            <div>{'Loading: ' + this.state.isLoading}</div>
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col>
-                            <SearchForm {...this.state.formdata} onDataChange={this.updateFormData} />
-                            {(this.state.isLoading ? <Spinner animation="border" /> : null) }
-                        </Col>
-                    </Row>
+                    <Card.Body>
+                        <Row>
+                            <Col>
+                                {/* TODO remove this guy */}
+                                <div>{'Loading: ' + this.state.isLoading}</div>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col>
+                                <SearchForm {...this.state.formdata} onDataChange={this.updateFormData} />
+                            </Col>
+                        </Row>
+                    </Card.Body>
                 </Card>
                 <br />
                 <Card>
-                    <Table>
-                        <GameTableHeader />
-                        <tbody>
-                            {rows}
-                        </tbody>
-                    </Table>
+                    <Card.Header>Results</Card.Header>
+                    <Card.Body>
+                        {(this.state.isLoading ? <Spinner animation="border" /> : null)}
+                        <Table bordered>
+                            <GameTableHeader />
+                            <tbody>
+                                {rows}
+                            </tbody>
+                        </Table>
+                    </Card.Body>
                 </Card>
             </Container>
         );
@@ -138,6 +144,7 @@ function GameTableHeader() {
         <thead>
             <tr>
                 <th>Rank</th>
+                <th></th>
                 <th>Game</th>
                 <th>Num Players</th>
                 <th>Best Num Players</th>
@@ -147,10 +154,19 @@ function GameTableHeader() {
 }
 
 function GameTableRow(props) {
+    var bggLink = 'http://www.boardgamegeek.com' + props.data.url;
+
     return (
         <tr>
             <td>{props.data.rank}</td>
-            <td>{props.data.bgname}</td>
+            <td>
+                <a href={bggLink} target='_blank'>
+                    <img src={props.data.thumbnail} style={{ width: '60px' }} />
+                </a>
+            </td>
+            <td>
+                <a href={bggLink} target='_blank'>{props.data.bgname}</a>
+            </td>
             <td>{props.data.minplayers}-{props.data.maxplayers}</td>
             <td>{props.data.bestVoted.numplayers} ({props.data.bestVoted.best}/{props.data.totalBestVotes} votes) ({props.data.totalVotes} total votes)</td>
         </tr>

@@ -69,6 +69,7 @@ export var findBestNumPlayers = function (idx, pollNode, curlen) {
     var maxplayers = $poll.siblings('maxplayers').text();
     var totalVotes = $poll.attr('totalvotes');
     var bgID = $poll.parent('boardgame').attr('objectid');
+    var thumbnail = $poll.siblings('thumbnail').text();
     var $results = $poll.find('results');
     var votes = $results.map(function (idx) {
         var $elm = $(this);
@@ -106,7 +107,9 @@ export var findBestNumPlayers = function (idx, pollNode, curlen) {
         "maxplayers": maxplayers,
         "bestVoted": bestVoted,
         "totalBestVotes": totalBestVotes,
-        "totalVotes": totalVotes
+        "totalVotes": totalVotes,
+        "url": data_arr[idx],
+        "thumbnail": thumbnail
     }
 
 
