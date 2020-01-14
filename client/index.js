@@ -53,13 +53,13 @@ class GameTable extends React.Component {
 
     // the quick and dirty anti-pattern
     // TODO change this to only set state in the component
-    updateData(newdata, cur_page, callback) {
+    updateData(newdata, cur_page) {
         this._asyncRequest = null;
         var bothdata = this.state.data.concat(newdata);
         this.setState({
             data: bothdata,
             cur_page: cur_page
-        }, callback);
+        });
 
         // TODO React Recomments using the callback logic in componentDidUpdate instead.
     }
@@ -67,16 +67,7 @@ class GameTable extends React.Component {
     getNextPage() {
         var cur_page = this.state.cur_page + 1;
         return BggMine.getBGGData(cur_page).
-            then((data) => this.updateData(data, cur_page,
-                () => {
-                    if (cur_page < this.max_pages) {
-                        return this.getNextPage();
-                    } else {
-                        return this.setState({
-                            isLoading: false
-                        });
-                    }
-                }));
+            then((data) => this.updateData(data, cur_page));
     }
 
     componentDidMount() {
@@ -90,6 +81,18 @@ class GameTable extends React.Component {
         // TODO cleanup/cancel any async calls
         if (this._asyncRequest) {
             this._asyncRequest.cancel()
+        }
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if (this.state.cur_page !== prevState.cur_page) {
+            if (this.state.cur_page < this.max_pages) {
+                return this.getNextPage();
+            } else {
+                return this.setState({
+                    isLoading: false
+                });
+            }
         }
     }
 
