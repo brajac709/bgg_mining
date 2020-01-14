@@ -108,7 +108,7 @@ export var findBestNumPlayers = function (idx, pollNode, curlen) {
         "bestVoted": bestVoted,
         "totalBestVotes": totalBestVotes,
         "totalVotes": totalVotes,
-        "url": data_arr[idx],
+        "url": data_arr[idx + curlen],
         "thumbnail": thumbnail
     }
 
